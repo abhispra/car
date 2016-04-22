@@ -1,7 +1,8 @@
 # import RPi.GPIO as GPIO
 from RPi.GPIO import GPIO
-from pin_val_set import PinValueSet
+from pin_set import PinSet
 from values import DebugTraceLevel
+from pin_val_set import PinValueSet
 
 
 class Motor:
@@ -12,20 +13,15 @@ class Motor:
 
     _refCount = 0
 
-    def __init__(self, enable_pin, pin1, pin2,
+    def __init__(self, enable_pin_number, pin1_number, pin2_number,
                  debug_level=DebugTraceLevel.NONE):
         if not Motor._initLibrary:
             GPIO.setmode(GPIO.BOARD)
 
         Motor._initLibrary = True
         Motor._refCount += 1
-        self.__enable = enable_pin
-        self.__pin1 = pin1
-        self.__pin2 = pin2
+        self._pin_set = PinSet(enable_pin_number, pin1_number, pin2_number)
         self._debug_level = debug_level
-        GPIO.setup(self.__pin1, GPIO.OUT)
-        GPIO.setup(self.__pin2, GPIO.OUT)
-        GPIO.setup(self.__enable, GPIO.OUT)
 
     def __del__(self):
         self.debug_message(DebugTraceLevel.DEBUG, "Cleanup called")
@@ -35,20 +31,18 @@ class Motor:
 
     def debug_message(self, debug_level, string):
         if (self._debug_level.value <= debug_level.value and
-                    self._debug_level.value != DebugTraceLevel.NONE):
+                self._debug_level.value != DebugTraceLevel.NONE):
             print(type(self).__name__ + ": " + string)
 
     def __write(self, pin_val):
         self.debug_message(DebugTraceLevel.DEBUG, "Entering write with val " +
                            str(pin_val.get_all()))
-        GPIO.output(self.__enable, pin_val.get_enable())
-        GPIO.output(self.__pin1, pin_val.get_pin1())
-        GPIO.output(self.__pin2, pin_val.get_pin2())
+        self._pin_set.set_all(pin_val.get_enable(), pin_val.get_pin1(), pin_val.get_pin2())
         self.debug_message(DebugTraceLevel.DEBUG, "Exiting write")
 
     def __read(self):
-        pin_val = PinValueSet(GPIO.input(self.__enable),
-                              GPIO.input(self.__pin1), GPIO.input(self.__pin2))
+        pin_val = PinValueSet(self._pin_set.get_enable_val(),
+                              self._pin_set.get_pin1_val(), self._pin_set.get_pin2_val())
         self.debug_message(DebugTraceLevel.DEBUG, "Read " + str(pin_val.get_all()))
         return pin_val
 
@@ -87,6 +81,7 @@ class Motor:
         pin_val = PinValueSet()
         if not self.__is_running:
             self.debug_message(DebugTraceLevel.INFO, "Motor not running, starting in assumed reverse")
+            pin_val = PinValueSet(GPIO.HIGH, GPIO.HIGH, GPIO.LOW)
         else:
             pin_val = self.__read()
             pin_val.set_pin1(int(pin_val.get_pin1() != GPIO.HIGH))

@@ -1,5 +1,3 @@
-
-
 class GPIO:
     """Dummy class representing gpio library for rpi"""
     __pin_setup = dict()
