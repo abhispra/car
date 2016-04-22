@@ -1,26 +1,35 @@
 from time import sleep
-from RPi.GPIO import GPIO
-from controls import Motor
+#from RPi.GPIO import GPIO
+import RPi.GPIO as GPIO
+from motor import Motor
 from values import DebugTraceLevel
+from values import Const
+from pin_set import PinSet
+from vehicle import Vehicle
 
-Motor1A = 16
-Motor1B = 18
+Motor1A = 18
+Motor1B = 16
 Motor1E = 12
-Motor2A = 6
-Motor2B = 8
-Motor2E = 2
+Motor2A = 15
+Motor2B = 13
+Motor2E = 11
 
-motor1 = Motor(Motor1E, Motor1A, Motor1B, DebugTraceLevel.DEBUG)
-motor2 = Motor(Motor2E, Motor2A, Motor2B, DebugTraceLevel.DEBUG)
+GPIO.setmode(GPIO.BOARD)
+rl_pin_set = PinSet(Motor1E, Motor1A, Motor1B)
+rr_pin_set = PinSet(Motor2E, Motor2A, Motor2B)
 
-motor1.start()
-motor1.start()
-motor1.reverse()
-motor1.stop()
-motor1.start()
-motor1.stop()
-motor2.start()
-motor1.reverse()
-motor2.stop()
-motor1.stop()
+vehicle = Vehicle(Const.TWO_WHEELED, rl_pin_set, rr_pin_set)
 
+vehicle.forward()
+sleep(2)
+vehicle.turn_left()
+sleep(0.75)
+vehicle.forward()
+sleep(2)
+vehicle.turn_right()
+sleep(0.75)
+vehicle.forward()
+sleep(1)
+vehicle.reverse()
+sleep(3)
+vehicle.stop()

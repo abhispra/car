@@ -1,5 +1,5 @@
-# import RPi.GPIO as GPIO
-from RPi.GPIO import GPIO
+import RPi.GPIO as GPIO
+#from RPi.GPIO import GPIO
 from pin_set import PinSet
 from values import DebugTraceLevel
 from pin_val_set import PinValueSet
@@ -13,14 +13,14 @@ class Motor:
 
     _refCount = 0
 
-    def __init__(self, enable_pin_number, pin1_number, pin2_number,
-                 debug_level=DebugTraceLevel.NONE):
+    def __init__(self, pin_set, debug_level=DebugTraceLevel.NONE):
         if not Motor._initLibrary:
-            GPIO.setmode(GPIO.BOARD)
+            pass
+            #GPIO.setmode(GPIO.BOARD)
 
         Motor._initLibrary = True
         Motor._refCount += 1
-        self._pin_set = PinSet(enable_pin_number, pin1_number, pin2_number)
+        self._pin_set = pin_set
         self._debug_level = debug_level
 
     def __del__(self):
